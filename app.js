@@ -27,14 +27,20 @@ const mySchema = new mongoose.Schema({});
 //Définition d'un modele sur la base du schema
 const myModel = mongoose.model('airbnb', mySchema,'listingsAndReviews');
 //On effectue ensuite la recherche :
-const count = myModel.find().count();
+const count = myModel.find().countDocuments();
 count.exec((err, result) => {
     console.log('Resultat count : '+ result);
 })
 
-//On affiche les résultats de la requête mongo sur le serveur Express à l'adresse /api
-const listing = myModel.find({name: /a/}, {_id:1, name:1, listing_url:1}).skip(10).limit(20).sort({_id:1});
+
+
 app.get('/api', (request, response) => {
+    console.log(request.query);
+    const limit = request.query.limit ? parseInt(request.query.limit) : 10;
+    const q = request.query.q ? new RegExp('^' + request.query.q) : new RegExp('^a');
+    console.log("q :" +q);
+    //On affiche les résultats de la requête mongo sur le serveur Express à l'adresse /api
+    const listing = myModel.find({name: q}, {_id:1, name:1, listing_url:1}).skip(10).limit(limit).sort({_id:1});
     listing.exec((err, result) => {
         console.log(result);
         response.send(result);
